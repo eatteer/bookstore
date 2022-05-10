@@ -20,13 +20,13 @@ export class Book {
   @Column('text')
   description: string;
 
-  @Column('text')
+  @Column()
   thumbnail: string;
 
-  @Column()
+  @Column({})
   genre: string;
 
-  @Column({ default: 0 })
+  @Column({})
   rating: number;
 
   @Column()

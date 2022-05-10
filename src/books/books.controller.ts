@@ -40,6 +40,7 @@ export class BooksController {
       return await this.booksService.register(registerBookDto);
     } catch (error) {
       console.error(error);
+      throw error;
     }
   }
 

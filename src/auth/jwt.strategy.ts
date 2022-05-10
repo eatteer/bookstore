@@ -17,6 +17,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   /* Callback provided by the strategy that automatically extract the bearer token and decode it */
   async validate(payload: Payload) {
     /* Inject object into request as user */
-    return { id: payload.sub };
+    return { id: payload.sub, role: payload.role };
   }
 }

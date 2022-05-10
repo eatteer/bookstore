@@ -49,34 +49,41 @@ export class BooksService {
   }
 
   async register(registerBookDto: RegisterBookDto) {
-    const book = new Book();
-    const bookSaleData = new BookSaleData();
+    let savedBookSaleData;
+    try {
+      const book = new Book();
+      const bookSaleData = new BookSaleData();
+      const thumbnail =
+        'https://2j2ysy3j2cg728eyxctyi8k1-wpengine.netdna-ssl.com/wp-content/uploads/2017/05/book-cover-placeholder.png';
 
-    const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${registerBookDto.isbn13}`;
-    const response = await axios.get(url);
+      const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${registerBookDto.isbn13}`;
+      const response = await axios.get(url);
 
-    const data = response.data.items[0];
+      const data = response.data.items[0];
 
-    bookSaleData.isForSale = registerBookDto.isForSale;
-    bookSaleData.stock = registerBookDto.stock;
-    bookSaleData.price = registerBookDto.price;
+      bookSaleData.isForSale = registerBookDto.isForSale;
+      bookSaleData.stock = registerBookDto.stock;
+      bookSaleData.price = registerBookDto.price;
 
-    const savedBookSaleData = await this.bookSaleDataRepository.save(
-      bookSaleData,
-    );
+      savedBookSaleData = await this.bookSaleDataRepository.save(bookSaleData);
 
-    book.isbn13 = data.volumeInfo.industryIdentifiers.find(
-      (identifier) => identifier.type === 'ISBN_13',
-    ).identifier;
-    book.title = data.volumeInfo.title;
-    book.description = data.volumeInfo.description;
-    book.thumbnail = data.volumeInfo.imageLinks.thumbnail;
-    book.genre = data.volumeInfo.categories[0];
-    book.rating = data.volumeInfo.averageRating;
-    book.author = data.volumeInfo.authors[0];
-    book.bookSaleData = savedBookSaleData;
+      book.isbn13 = data.volumeInfo?.industryIdentifiers?.find(
+        (identifier) => identifier?.type === 'ISBN_13',
+      )?.identifier;
+      book.title = data.volumeInfo?.title || 'Unknwown';
+      book.description = data.volumeInfo?.description || 'Unknown';
+      book.thumbnail = data.volumeInfo?.imageLinks?.thumbnail || thumbnail;
+      book.genre = data.volumeInfo?.categories?.[0] || 'Unknown';
+      book.rating = data.volumeInfo?.averageRating || 0;
+      book.author = data.volumeInfo?.authors[0] || 'Unknown';
+      book.bookSaleData = savedBookSaleData;
 
-    return await this.booksRepository.save(book);
+      const savedBook = await this.booksRepository.save(book);
+      return savedBook;
+    } catch (error) {
+      this.bookSaleDataRepository.remove(savedBookSaleData);
+      throw error;
+    }
   }
 
   async edit(isbn13: string, editBookDto: EditBookDto) {
