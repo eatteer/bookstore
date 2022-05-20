@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Role } from 'src/auth/role.decorators';
+import { Role } from 'src/auth/roles.decorators';
 import { RegiterUserDto } from './dto/register-user.dto';
 import { User } from './entities/user.entity';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -27,12 +28,15 @@ export class UsersService {
     return user;
   }
 
-  async register(registerUserDto: RegiterUserDto) {
+  async register(registerUserDto: RegiterUserDto, role: Role) {
+    const saltOrRounds = 10;
+    const hash = await bcrypt.hash(registerUserDto.password, saltOrRounds);
     const user = new User();
     user.username = registerUserDto.username;
     user.email = registerUserDto.email;
-    user.password = registerUserDto.password;
-    user.role = Role.Client;
-    await this.usersRepository.insert(user);
+    user.password = hash;
+    user.role = role;
+    const savedUser = await this.usersRepository.save(user);
+    return savedUser;
   }
 }

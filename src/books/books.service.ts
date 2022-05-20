@@ -16,6 +16,13 @@ export class BooksService {
     private bookSaleDataRepository: Repository<BookSaleData>,
   ) {}
 
+  async findByIsbn13(isbn13: string) {
+    const book = await this.booksRepository.findOne(isbn13, {
+      relations: ['bookSaleData'],
+    });
+    return book;
+  }
+
   async findAll() {
     const books = await this.booksRepository
       .createQueryBuilder('book')
@@ -25,11 +32,17 @@ export class BooksService {
     return books;
   }
 
-  async findByIsbn(isbn13: string) {
-    const book = await this.booksRepository.findOne(isbn13, {
-      relations: ['bookSaleData'],
-    });
-    return book;
+  async findAllByKeyword(keyword: string) {
+    const books = await this.booksRepository
+      .createQueryBuilder('book')
+      .innerJoinAndSelect('book.bookSaleData', 'bookSaleData')
+      .where('book.isbn13 like :isbn13', { isbn13: `%${keyword}%` })
+      .orWhere('book.title like :title', { title: `%${keyword}%` })
+      .orWhere('book.genre like :genre', { genre: `%${keyword}%` })
+      .orWhere('book.author like :author', { author: `%${keyword}%` })
+      .getMany();
+
+    return books;
   }
 
   /* Find availables (stock > 0 and for sale) */

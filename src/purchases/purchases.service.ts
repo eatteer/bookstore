@@ -14,9 +14,9 @@ export class PurchasesService {
     private usersService: UsersService,
     private booksServices: BooksService,
     @InjectRepository(Purchase)
-    private purchaseRepository: Repository<Purchase>,
+    private purchasesRepository: Repository<Purchase>,
     @InjectRepository(BookPurchase)
-    private bookPurchase: Repository<BookPurchase>,
+    private bookPurchasesRepository: Repository<BookPurchase>,
   ) {}
 
   async register(userId: number, registerPurchaseDto: RegisterPurchaseDto) {
@@ -26,7 +26,7 @@ export class PurchasesService {
     /* Configure and save purchase to database */
     purchase.user = user;
     purchase.total = registerPurchaseDto.total;
-    const savedPurchase = await this.purchaseRepository.save(purchase);
+    const savedPurchase = await this.purchasesRepository.save(purchase);
 
     /* Configure purchase data of every book and save to database */
     registerPurchaseDto.bookPurchases.map(async (bookPurchase) => {
@@ -44,12 +44,12 @@ export class PurchasesService {
       };
 
       await this.booksServices.edit(bookPurchase.book.isbn13, editBookDto);
-      await this.bookPurchase.save(purchaseToBook);
+      await this.bookPurchasesRepository.save(purchaseToBook);
     });
   }
 
   async findByUserId(id: number) {
-    const purchaseHistory = await this.purchaseRepository
+    const purchaseHistory = await this.purchasesRepository
       .createQueryBuilder('purchase')
       .innerJoinAndSelect('purchase.bookPurchases', 'bookPurchase')
       .innerJoinAndSelect('bookPurchase.book', 'book')

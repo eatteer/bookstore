@@ -8,10 +8,10 @@ import { PurchasesModule } from './purchases/purchases.module';
   imports: [
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: 'localhost',
+      host: 'development-instance.mysql.database.azure.com',
       port: 3306,
-      username: 'root',
-      password: 'admin',
+      username: 'dbadmin',
+      password: '$0password',
       database: 'alexandria',
       entities: ['dist/**/*.entity{.ts,.js}'],
       synchronize: true,

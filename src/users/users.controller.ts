@@ -1,4 +1,6 @@
-import { Body, Controller, Get, HttpCode, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { Role } from 'src/auth/roles.decorators';
 
 import { RegiterUserDto } from './dto/register-user.dto';
 import { UsersService } from './users.service';
@@ -28,13 +30,23 @@ export class UsersControllers {
     }
   }
 
-  @Post()
-  @HttpCode(201)
-  async register(@Body() registerUserDto: RegiterUserDto) {
+  @Post('client')
+  async registerClient(@Body() registerUserDto: RegiterUserDto) {
     try {
-      await this.usersServices.register(registerUserDto);
+      await this.usersServices.register(registerUserDto, Role.Client);
     } catch (error) {
       console.error(error);
+      throw error;
+    }
+  }
+
+  @Post('admin')
+  async registerAdmin(@Body() registerUserDto: RegiterUserDto) {
+    try {
+      return await this.usersServices.register(registerUserDto, Role.Admin);
+    } catch (error) {
+      console.error(error);
+      throw error;
     }
   }
 }

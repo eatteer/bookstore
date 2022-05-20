@@ -1,7 +1,18 @@
-import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { BooksService } from './books.service';
 import { RegisterBookDto } from './dto/register-book.dto';
 import { EditBookDto } from './dto/edit-book.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { Role, Roles } from 'src/auth/roles.decorators';
 
 @Controller('books')
 export class BooksController {
@@ -10,7 +21,8 @@ export class BooksController {
   @Get('availables')
   async findAvailablesByKeyword(@Query('keyword') keyword: string) {
     try {
-      return await this.booksService.findAvailablesByKeyword(keyword);
+      const books = await this.booksService.findAvailablesByKeyword(keyword);
+      return books;
     } catch (error) {
       console.error(error);
     }
@@ -19,21 +31,28 @@ export class BooksController {
   @Get(':isbn13')
   async findByIsbn(@Param('isbn13') isbn13: string) {
     try {
-      return await this.booksService.findByIsbn(isbn13);
+      return await this.booksService.findByIsbn13(isbn13);
     } catch (error) {
       console.error(error);
     }
   }
 
+  @Roles(Role.Admin)
+  @UseGuards(AuthGuard('jwt'))
   @Get()
-  async findAll() {
+  async findAll(@Query('keyword') keyword: string) {
     try {
+      if (keyword) {
+        return await this.booksService.findAllByKeyword(keyword);
+      }
       return await this.booksService.findAll();
     } catch (error) {
       console.error(error);
     }
   }
 
+  @Roles(Role.Admin)
+  @UseGuards(AuthGuard('jwt'))
   @Post()
   async register(@Body() registerBookDto: RegisterBookDto) {
     try {
@@ -44,6 +63,8 @@ export class BooksController {
     }
   }
 
+  @Roles(Role.Admin)
+  @UseGuards(AuthGuard('jwt'))
   @Put(':isbn13')
   async edit(
     @Param('isbn13') isbn13: string,
